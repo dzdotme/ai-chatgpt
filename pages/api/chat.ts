@@ -8,33 +8,34 @@ if (!process.env.OPENAI_API_KEY) {
 }
 
 const botName = 'AI'
-const userName = 'News reporter' // TODO: move to ENV var
+const userName = 'Career coach' // TODO: move to ENV var
 const firstMessge = initialMessages[0].message
 
 // @TODO: unit test this. good case for unit testing
 const generatePromptFromMessages = (messages: Message[]) => {
-  console.log('== INITIAL messages ==', messages)
+  let prompt = '';
 
-  let prompt = ''
+  // add introductory message to prompt
+  prompt += "Hello! I'm your AI career coach. ";
 
-  // add first user message to prompt
-  prompt += messages[1].message
+  // add first question to prompt
+  prompt += "What part of the job search do you need help with? ";
 
-  // remove first conversaiton (first 2 messages)
-  const messagesWithoutFirstConvo = messages.slice(2)
-  console.log(' == messagesWithoutFirstConvo', messagesWithoutFirstConvo)
+  // add second question to prompt
+  prompt += "What has been the most frustrating thing for your job search? ";
 
-  // early return if no messages
-  if (messagesWithoutFirstConvo.length == 0) {
-    return prompt
-  }
+  // remove first two messages
+  const messagesWithoutFirstConvo = messages.slice(2);
 
+  // add remaining messages to prompt
   messagesWithoutFirstConvo.forEach((message: Message) => {
-    const name = message.who === 'user' ? userName : botName
-    prompt += `\n${name}: ${message.message}`
-  })
-  return prompt
-}
+    const name = message.who === 'user' ? userName : botName;
+    prompt += `\n${name}: ${message.message}`;
+  });
+
+  return prompt;
+};
+
 
 export const config = {
   runtime: 'edge',
@@ -46,7 +47,7 @@ export default async function handler(req: NextRequest) {
 
   // const messages = req.body.messages
   const messagesPrompt = generatePromptFromMessages(body.messages)
-  const defaultPrompt = `I am Friendly AI Assistant. \n\nThis is the conversation between AI Bot and a news reporter.\n\n${botName}: ${firstMessge}\n${userName}: ${messagesPrompt}\n${botName}: `
+  const defaultPrompt = `I am Friendly AI Assistant. \n\nThis is the conversation between AI Bot and a job seeker.\n\n${botName}: ${firstMessge}\n${userName}: ${messagesPrompt}\n${botName}: `
   const finalPrompt = process.env.AI_PROMPT
     ? `${process.env.AI_PROMPT}${messagesPrompt}\n${botName}: `
     : defaultPrompt
